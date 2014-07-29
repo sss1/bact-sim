@@ -28,6 +28,8 @@ sargs.X(:,2) = unifrnd(-9,-8,sargs.n,1);        % initial agent Y positions
 sargs.dt = 0.2;	                                % time step size
 sargs.num_iters = 1500;                         % number of iterations to simulate (set very large (e.g., 5000) to measure path length)
 sargs.to_plot = false;                          % whether to plot simulation in real time
+sargs.to_record = false;                        % whether to save a video of the simulation plot; only used if sargs.to_plot
+sargs.record_name = 'refactored'                % name of video file (without '.avi'); only used if sargs.to_record
 sargs.found_radius = 0.1;                       % distance from food source at which to terminate search (0 if never)
 sargs.distance_func = @(X,c) norm(mean(X) - c); % how to determine the distance from food source c
 

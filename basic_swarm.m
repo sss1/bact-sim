@@ -19,17 +19,20 @@ function [X, iter, path_dist] = basic_swarm(bargs, sargs)
   dt = sargs.dt;
   num_iters = sargs.num_iters;
   to_plot = sargs.to_plot;
+  to_record = sargs.to_record;
 
   V = zeros(size(X)); % matrix of agent velocities; initially 0
 
   if to_plot
-    aviobj = avifile('refactored.avi','fps',15); 
     plotter(X, terrain);
     F(1) = getframe;
-    aviobj = addframe(aviobj,F(1));
+    if to_record
+      aviobj = avifile([sargs.record_name '.avi'], 'fps', 15);
+      aviobj = addframe(aviobj, F(1));
+    end
   end
 
-  path_dist = ones(num_iters,1);
+  path_dist = ones(num_iters, 1);
 
   for iter = 1:num_iters
 %    % add a second group later
@@ -43,7 +46,7 @@ function [X, iter, path_dist] = basic_swarm(bargs, sargs)
 %    end
 
     % objective found; terminate and return path length
-    if sargs.distance_func(X,[3 2]) < sargs.found_radius
+    if sargs.distance_func(X, [3 2]) < sargs.found_radius
       return
     end
 
@@ -51,16 +54,20 @@ function [X, iter, path_dist] = basic_swarm(bargs, sargs)
     V = velocities(X, V, bargs, sargs);
     X = X + dt*V;
 
-    path_dist(iter) = sargs.distance_func(X,[3 2]);
+    path_dist(iter) = sargs.distance_func(X, [3 2]);
 
-    if to_plot && (mod(iter,10) == 0)
+    if to_plot && (mod(iter, 10) == 0)
       plotter(X, terrain);
       F((iter./10)+1) = getframe;
-      aviobj = addframe(aviobj,F((iter./10)+1));
+      if to_record
+        aviobj = addframe(aviobj, F((iter./10)+1));
+      end
     end
   end
   if to_plot
-    aviobj = close(aviobj);
+    if to_record
+      aviobj = close(aviobj);
+    end
     movie(F,20);
     disp('done');
   end
