@@ -1,11 +1,6 @@
 % Inputs:
-%   X - n-by-2 matrix of initial agent positions (n is the number of agents)
-%   terrain - function mapping R^2 -> R, encoding the food density
-%   sigma - variance of agents' internal noise
-%   RR, RO, RA - radii of repulsion, orientation, and attraction
-%   dt - time step size
-%   num_iters - number of iterations to compute
-%   to_plot - boolean indicating whether to plot agent trajectories
+%   bargs - struct of local (bacteria) parameters; see preset.m
+%   sargs - struct of global (experimental) parameters; see run_sim.m
 %
 % Outputs:
 %  X - n-by-2 matrix of final agent positions
@@ -35,7 +30,8 @@ function [X, iter, path_dist] = basic_swarm(bargs, sargs)
   path_dist = ones(num_iters, 1);
 
   for iter = 1:num_iters
-%    % add a second group later
+%    % code to add a second group half-way through
+%  for iter = 1:(num_iters/2)
 %    if iter == num_iters
 %      X((n + 1):(2.*n),:) = X0;
 %      V((n + 1):(2.*n),:) = zeros(size(X0));
@@ -92,6 +88,7 @@ end
 function v = velocity(i, X, V, D_i, bargs, sargs)
 
   sigma = bargs.sigma;
+  wf = bargs.weight_fun
   dt = sargs.dt;
   terrain = sargs.terrain;
 
@@ -99,17 +96,17 @@ function v = velocity(i, X, V, D_i, bargs, sargs)
   dc = terrain(X(i,1),X(i,2)) - terrain(prevX(1),prevX(2)); % change in gradient
 
   % combine interaction and individual components, according to weight
-  w = 10.*(dc < 0) - 1;
-  v = interaction(i, X, V, D_i, bargs, sargs) - w.*V(i,:);
+  w = dc > 0;
+  v = wf(interaction(i, X, V, D_i, bargs), V(i,:), dc);
 
   if norm(v) > 0
     v = v./norm(v);
   end
-  v = 0.5.*v + 0.5.*normrnd(0,sigma,1,2); % add noise
+  v = 0.5.*v + 0.5.*normrnd(0, sigma, 1, 2); % add noise
 end
 
 % compute the normalized total effect of interactions on agent i 
-function u = interaction(i, X, V, D_i, bargs, sargs)
+function u = interaction(i, X, V, D_i, bargs)
 
   RR = bargs.RR;
   o_decay = bargs.orient_decay;
