@@ -7,7 +7,7 @@
 %  iter - number of iterations to find food
 %  path_dist - distance from food source during each iteration
 
-function [X, iter, path_dist] = basic_swarm(bargs, sargs)
+function [iter, path_dist] = basic_swarm(bargs, sargs)
 
   X = sargs.X;
   terrain = sargs.terrain;
@@ -88,7 +88,7 @@ end
 function v = velocity(i, X, V, D_i, bargs, sargs)
 
   sigma = bargs.sigma;
-  wf = bargs.weight_fun
+  wf = bargs.weight_fun;
   dt = sargs.dt;
   terrain = sargs.terrain;
 
@@ -118,11 +118,20 @@ function u = interaction(i, X, V, D_i, bargs)
     u = -sum(bsxfun(@minus, X(repulsion_idxs,:), X(i,:)));
   else
     % compute weights for orient and attract based on input decay functions
-    w_o = repmat(arrayfun(o_decay, D_i(D_i > 0)),1,2);
-    size(w_o)
-    w_a = repmat(arrayfun(a_decay, D_i(D_i > 0)),1,2);
-    orient = sum(arrayfun(df, V(D_i > 0,:)).*w_o);
-    attract = sum(arrayfun(df, bsxfun(@minus, X(D_i > 0,:), X(i,:))).*w_a);
+    w_o = repmat(arrayfun(o_decay, D_i),1,2);
+    w_a = repmat(arrayfun(a_decay, D_i),1,2);
+    w_o(i) = 0;
+    w_a(i) = 0;
+
+    attracts = bsxfun(@minus, X, X(i,:));
+
+    % compute weighted discretized sums
+    orient = [0 0];
+    attract = [0 0];
+    for x = 1:length(D_i)
+      orient = orient + df(V(x,:))*w_o(x);
+      attract = attract + df(attracts(x,:))*w_a(x);
+    end
     u = orient + attract;
   end
 

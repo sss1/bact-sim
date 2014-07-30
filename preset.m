@@ -20,38 +20,44 @@ function bargs = preset(m)
   if strcmpi(m, 'shklarsh')
     bargs.orient_decay = @(x) (x < RO);
     bargs.attract_decay = @(x) (x < RA);
-    bargs.disc_fun = @(x,y) [x y];
+    bargs.disc_fun = @(x) x;
     bargs.weight_fun = @(u, v, dc) u + v;
 
-  if strcmpi(m, 'shklarsh_adaptive')
+  elseif strcmpi(m, 'adaptive')
     bargs.orient_decay = @(x) (x < RO);
     bargs.attract_decay = @(x) (x < RA);
-    bargs.disc_fun = @(x,y) [x y];
-    bargs.weight_fun = @(u, v, dc) u + (dc > 0)*v;
+    bargs.disc_fun = @(x) x;
+    bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
+
+  elseif strcmpi(m, 'no_orient')
+    bargs.orient_decay = @(x) 0;
+    bargs.attract_decay = @(x) (x < RA);
+    bargs.disc_fun = @(x) disc(x, L, T);
+    bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
 
   elseif strcmpi(m, 'd')
     bargs.orient_decay = @(x) (x < RO);
     bargs.attract_decay = @(x) (x < RA);
-    bargs.disc_fun = @(x,y) disc([x y], L, T);
-    bargs.weight_fun = @(u, v, dc) u + (dc > 0)*v;
+    bargs.disc_fun = @(x) disc(x, L, T);
+    bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
 
   elseif strcmpi(m, 'dw1')
     bargs.orient_decay = @(x) x^(-1);
     bargs.attract_decay = @(x) x^(-1);
     bargs.disc_fun = @(x) disc(x, L, T);
-    bargs.weight_fun = @(u, v, dc) u + (dc > 0)*v;
+    bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
 
   elseif strcmpi(m, 'dw2')
     bargs.orient_decay = @(x) x.^(-2);
     bargs.attract_decay = @(x) x.^(-2);
     bargs.disc_fun = @(x) disc(x, L, T);
-    bargs.weight_fun = @(u, v, dc) u + (dc > 0)*v;
+    bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
 
   elseif strcmpi(m, 'dwexp')
-    bargs.orient_decay = @(x) exp(-x);
-    bargs.orient_decay = @(x) exp(-x);
+    bargs.orient_decay = @(x) exp(-5*x);
+    bargs.attract_decay = @(x) exp(-x);
     bargs.disc_fun = @(x) disc(x, L, T);
-    bargs.weight_fun = @(u, v, dc) u + (dc > 0)*v;
+    bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
 
   else
     error('Unknown preset: %s', m);
