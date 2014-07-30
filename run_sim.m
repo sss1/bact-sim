@@ -23,10 +23,10 @@ sargs.terrain = @(x,y) logSource(x,y) + obstacles(x,y) + obstacle(x,y);
 % i.e., global properties
 sargs.n = 50;                                   % number of agents to simulate
 % X0 = [unifrnd(-7.7,-6.7,n,1) unifrnd(-8.2,-7.2,n,1); unifrnd(2.5,3.5,n,1) unifrnd(1.5,2.5,n,1)];
-sargs.X(:,1) = unifrnd(-5, -4, sargs.n, 1);     % initial agent X positions
-sargs.X(:,2) = unifrnd(-6, -5, sargs.n, 1);     % initial agent Y positions
+sargs.X(:,1) = unifrnd(-7, -6, sargs.n, 1);     % initial agent X positions
+sargs.X(:,2) = unifrnd(-9, -8, sargs.n, 1);     % initial agent Y positions
 sargs.dt = 0.2;	                                % time step size
-sargs.num_iters = 3500;                         % number of iterations to simulate (set very large (e.g., 5000) to measure path length)
+sargs.num_iters = 2000;                         % number of iterations to simulate (set very large (e.g., 5000) to measure path length)
 sargs.to_plot = false;                          % whether to plot simulation in real time
 sargs.to_record = false;                        % whether to save a video of the simulation plot; only used if sargs.to_plot
 sargs.record_name = 'refactored';               % name of video file (without '.avi'); only used if sargs.to_record
@@ -45,10 +45,11 @@ sargs.distance_func = @(X,c) norm(mean(X) - c); % how to determine the distance 
 
 % code for visualizing sim
 % sargs.to_plot = true;
-% basic_swarm(preset('shklarsh_adaptive'), sargs);
+% basic_swarm(preset('adaptive'), sargs);
 
 % code for plotting distribution of path lengths and path lengths over time
-num_trials = 12;
+num_trials = 24;
+% allocate space for results
 lengths1 = zeros(num_trials,1);
 lengths2 = zeros(num_trials,1);
 lengths3 = zeros(num_trials,1);
@@ -57,23 +58,35 @@ dists1 = zeros(num_trials, sargs.num_iters);
 dists2 = zeros(num_trials, sargs.num_iters);
 dists3 = zeros(num_trials, sargs.num_iters);
 dists4 = zeros(num_trials, sargs.num_iters);
+% run trials
 parfor trial = 1:num_trials
   if trial <= num_trials/12
     trial
+    tic
   end
   [lengths1(trial), dists1(trial,:)] = basic_swarm(preset('adaptive'), sargs);
   if trial <= num_trials/12
+    toc
     trial
+    tic
   end
   [lengths2(trial), dists2(trial,:)] = basic_swarm(preset('no_orient'), sargs);
   if trial <= num_trials/12
+    toc
     trial
+    tic
   end
   [lengths3(trial), dists3(trial,:)] = basic_swarm(preset('d'), sargs);
   if trial <= num_trials/12
+    toc
     trial
+    tic
   end
-  [lengths4(trial), dists4(trial,:)] = basic_swarm(preset('dwexp'), sargs);
+  [lengths4(trial), dists4(trial,:)] = basic_swarm(preset('wexp'), sargs);
+  if trial <= num_trials/12
+    trial
+    toc
+  end
 end
 
 % Plot distribution of path lengths
@@ -87,7 +100,7 @@ plot(xi,f,'LineWidth',3);
 plot(xi,f,'LineWidth',3);
 [f,xi] = ksdensity(lengths4);
 plot(xi,f,'LineWidth',3);
-xlim([200 1600]);
+xlim([200 800]);
 h = legend('Adaptive','No Orient','Discrete','Discrete, Exponentially Weighted');
 set(h,'FontSize',20);
 xlabel('Path Length (Iterations)','FontSize',20);

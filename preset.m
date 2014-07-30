@@ -10,7 +10,7 @@
 
 function bargs = preset(m)
 
-  bargs.sigma = 0.5;
+  bargs.sigma = 0.1;
   bargs.RR = 0.1;
   RO = 4;
   RA = 4.3;
@@ -19,7 +19,7 @@ function bargs = preset(m)
 
   if strcmpi(m, 'shklarsh')
     bargs.orient_decay = @(x) (x < RO);
-    bargs.attract_decay = @(x) (x < RA);
+    bargs.attract_decay = @(x) (x < RA && x >= RO);
     bargs.disc_fun = @(x) x;
     bargs.weight_fun = @(u, v, dc) u + v;
 
@@ -32,7 +32,7 @@ function bargs = preset(m)
   elseif strcmpi(m, 'no_orient')
     bargs.orient_decay = @(x) 0;
     bargs.attract_decay = @(x) (x < RA);
-    bargs.disc_fun = @(x) disc(x, L, T);
+    bargs.disc_fun = @(x) x;
     bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
 
   elseif strcmpi(m, 'd')
@@ -53,9 +53,15 @@ function bargs = preset(m)
     bargs.disc_fun = @(x) disc(x, L, T);
     bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
 
+  elseif strcmpi(m, 'wexp')
+    bargs.orient_decay = @(x) exp(-2*x);
+    bargs.attract_decay = @(x) exp(-x/2);
+    bargs.disc_fun = @(x) x;
+    bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
+
   elseif strcmpi(m, 'dwexp')
-    bargs.orient_decay = @(x) exp(-5*x);
-    bargs.attract_decay = @(x) exp(-x);
+    bargs.orient_decay = @(x) exp(-2*x);
+    bargs.attract_decay = @(x) exp(-x/2);
     bargs.disc_fun = @(x) disc(x, L, T);
     bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
 

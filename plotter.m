@@ -16,7 +16,7 @@ function plotter(X, terrain)
   ymax = 6;%max(X(:,2)) + 4;
 
   % plot terrain
-  ezcontour(terrain, [xmin,xmax,ymin,ymax], 250);
+  ezcontour(terrain, 2*[xmin,xmax,ymin,ymax], 250);
 
   hold all;
   r = min(xmax - xmin, ymax - ymin)/50;

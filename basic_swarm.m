@@ -95,14 +95,19 @@ function v = velocity(i, X, V, D_i, bargs, sargs)
   prevX = X(i,:) - dt*V(i,:);
   dc = terrain(X(i,1),X(i,2)) - terrain(prevX(1),prevX(2)); % change in gradient
 
+  % tumble if gradient isn't increasing
+  theta = normrnd(0,pi*(dc < 0));
+  R = [cos(theta) -sin(theta); sin(theta) cos(theta)];
+
   % combine interaction and individual components, according to weight
-  w = dc > 0;
-  v = wf(interaction(i, X, V, D_i, bargs), V(i,:), dc);
+  v = wf(interaction(i, X, V, D_i, bargs), V(i,:)*R, dc);
 
   if norm(v) > 0
     v = v./norm(v);
   end
-  v = 0.5.*v + 0.5.*normrnd(0, sigma, 1, 2); % add noise
+
+  v = v + normrnd(0, sigma, 1, 2); % add noise
+
 end
 
 % compute the normalized total effect of interactions on agent i 
