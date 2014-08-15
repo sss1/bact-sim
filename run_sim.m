@@ -21,15 +21,15 @@ sargs.terrain = @(x,y) logSource(x,y) + obstacles(x,y) + obstacle(x,y);
 
 % sargs specifies simulation properties
 % i.e., global properties
-sargs.n = 30;                                   % number of agents to simulate
+sargs.n = 20;                                  % number of agents to simulate
 % X0 = [unifrnd(-7.7,-6.7,n,1) unifrnd(-8.2,-7.2,n,1); unifrnd(2.5,3.5,n,1) unifrnd(1.5,2.5,n,1)];
 sargs.X(:,1) = unifrnd(-7, -6, sargs.n, 1);     % initial agent X positions
 sargs.X(:,2) = unifrnd(-9, -8, sargs.n, 1);     % initial agent Y positions
 sargs.dt = 0.2;	                                % time step size
-sargs.num_iters = 2000;                         % number of iterations to simulate (set very large (e.g., 5000) to measure path length)
+sargs.num_iters = 800;                          % number of iterations to simulate (set very large (e.g., 5000) to measure path length)
 sargs.to_plot = false;                          % whether to plot simulation in real time
 sargs.to_record = false;                        % whether to save a video of the simulation plot; only used if sargs.to_plot
-sargs.record_name = 'refactored20';             % name of video file (without '.avi'); only used if sargs.to_record
+sargs.record_name = 'refactored';               % name of video file (without '.avi'); only used if sargs.to_record
 sargs.found_radius = 0.8;                       % distance from food source at which to terminate search (0 if never)
 sargs.distance_func = @(X,c) norm(mean(X) - c); % how to determine the distance from food source c
 
@@ -48,95 +48,53 @@ sargs.distance_func = @(X,c) norm(mean(X) - c); % how to determine the distance 
 % basic_swarm(preset('adaptive'), sargs);
 
 % code for plotting distribution of path lengths and path lengths over time
-% TODO: reduce code repetition by taking in a list of models to test
-num_trials = 120;
-% allocate space for results
-lengths0 = zeros(num_trials,1);
-lengths1 = zeros(num_trials,1);
-lengths2 = zeros(num_trials,1);
-lengths3 = zeros(num_trials,1);
-lengths4 = zeros(num_trials,1);
-dists0 = zeros(num_trials, sargs.num_iters);
-dists1 = zeros(num_trials, sargs.num_iters);
-dists2 = zeros(num_trials, sargs.num_iters);
-dists3 = zeros(num_trials, sargs.num_iters);
-dists4 = zeros(num_trials, sargs.num_iters);
+num_trials = 240;
+
+% list presets to compare
+bargs(1) = preset('shklarsh');
+bargs(2) = preset('adaptive');
+bargs(3) = preset('no_orient');
+bargs(4) = preset('d');
+bargs(5) = preset('wexp');
+
+% allocate space for outputs
+lengths = zeros(num_trials, length(bargs));
+path_dists = zeros(num_trials, length(bargs), sargs.num_iters);
+inter_dists = zeros(num_trials, length(bargs), sargs.num_iters, length(pdist(sargs.X)));
+Vs = zeros(num_trials, length(bargs), sargs.num_iters, sargs.n);
+
 % run trials
 parfor trial = 1:num_trials
-  if trial <= num_trials/12
-    trial
-    tic
+
+  % TODO: figure out classification! Maybe just remove parallelization...
+
+  % intermediate variable to ensure parfor classification
+  new_lengths = zeros(length(bargs),1);
+  new_path_dists = zeros(length(bargs), sargs.num_iters);
+  new_inter_dists = zeros(length(bargs), sargs.num_iters, length(pdist(sargs.X)));
+  new_Vs = zeros(length(bargs), sargs.num_iters, sargs.n);
+
+  % run each method
+  for method = 1:length(bargs)
+    if trial <= num_trials/12 % report progress for one (of 12) thread(s)
+      [trial, method]
+    end
+    [new_lengths(method), new_path_dists(method,:), new_inter_dists(method,:,:), new_Vs(method,:,:)] = basic_swarm(bargs(method), sargs);
   end
-  [lengths0(trial), dists0(trial,:)] = basic_swarm(preset('shklarsh'), sargs);
-  if trial <= num_trials/12
-    toc
-    trial
-    tic
-  end
-  [lengths1(trial), dists1(trial,:)] = basic_swarm(preset('adaptive'), sargs);
-  if trial <= num_trials/12
-    toc
-    trial
-    tic
-  end
-  [lengths2(trial), dists2(trial,:)] = basic_swarm(preset('no_orient'), sargs);
-  if trial <= num_trials/12
-    toc
-    trial
-    tic
-  end
-  [lengths3(trial), dists3(trial,:)] = basic_swarm(preset('d'), sargs);
-  if trial <= num_trials/12
-    toc
-    trial
-    tic
-  end
-  [lengths4(trial), dists4(trial,:)] = basic_swarm(preset('wexp'), sargs);
-  if trial <= num_trials/12
-    trial
-    toc
-  end
+
+  % copy intermediate variable to permanent ones
+  lengths(trial,:) = new_lengths;
+  path_dists(trial,1:length(bargs),1:sargs.num_iters) = path_dists;
+  inter_dists(trial,:,:,:) = new_inter_dists;
+  Vs(trial,:,:,:) = new_Vs;
 end
 
-% Plot distribution of path lengths
-figure;
-hold all;
-% [f,xi] = ksdensity(lengths0);
-% plot(xi,f,'LineWidth',3);
-[f,xi] = ksdensity(lengths1);
-plot(xi,f,'LineWidth',3);
-[f,xi] = ksdensity(lengths2);
-plot(xi,f,'LineWidth',3);
-[f,xi] = ksdensity(lengths3);
-plot(xi,f,'LineWidth',3);
-[f,xi] = ksdensity(lengths4);
-plot(xi,f,'LineWidth',3);
-xlim([0 400]);
-h = legend('Adaptive','No Orient','Discrete','Discrete, Exponentially Weighted');
-% h = legend('Basic','Adaptive','No Orient','Discrete','Discrete, Exponentially Weighted');
-set(h,'FontSize',20);
-xlabel('Path Length (Iterations)','FontSize',20);
-ylabel('Probability','FontSize',20);
-title('Distribution of Path Lengths for First Swarm under Each Model','FontSize',20);
-
-% Plot path lengths over time
-figure;
-hold all;
-m = mean(dists0(:,1:1000));
-plot(m,'LineWidth',3);
-m = mean(dists1(:,1:1000));
-plot(m,'LineWidth',3);
-m = mean(dists2(:,1:1000));
-plot(m,'LineWidth',3);
-m = mean(dists3(:,1:1000));
-plot(m,'LineWidth',3);
-m = mean(dists4(:,1:1000));
-plot(m,'LineWidth',3);
-h = legend('Basic','Adaptive','No Orient','Discrete','Discrete, Exponentially Weighted');
-set(h,'FontSize',20);
-xlabel('Iteration','FontSize',20);
-ylabel('Distance from food source','FontSize',20);
-title('Mean Distance from Food Source over Time','FontSize',20);
-
 % save results
-save('refactored30.mat','lengths0','lengths1','lengths2','lengths3','lengths4','dists0','dists1','dists2','dists3','dists4');
+if sargs.n < 10
+  savenum = ['00' int2str(sargs.n)];
+elseif sargs.n < 100
+  savenum = ['0' int2str(sargs.n)];
+else
+  savenum = int2str(sargs.n);
+end
+save(['designed' savenum '.mat'],'lengths','path_dists','inter_dists','Vs');

@@ -3,11 +3,12 @@
 %   sargs - struct of global (experimental) parameters; see run_sim.m
 %
 % Outputs:
-%  X - n-by-2 matrix of final agent positions
 %  iter - number of iterations to find food
 %  path_dist - distance from food source during each iteration
+%  inter_dist - list of distances between agents at each timestep
+%  list of velocities of agents at each time step
 
-function [iter, path_dist] = basic_swarm(bargs, sargs)
+function [iter, path_dist, inter_dists, Vs] = basic_swarm(bargs, sargs)
 
   X = sargs.X;
   terrain = sargs.terrain;
@@ -27,7 +28,9 @@ function [iter, path_dist] = basic_swarm(bargs, sargs)
     end
   end
 
-  path_dist = ones(num_iters, 1);
+  path_dist = zeros(num_iters, 1);
+  inter_dists = zeros(num_iters, length(pdist(X)));
+  Vs = zeros(num_iters, sargs.n);
 
   for iter = 1:num_iters
 %    % code to add a second group half-way through
@@ -51,6 +54,8 @@ function [iter, path_dist] = basic_swarm(bargs, sargs)
     X = X + dt*V;
 
     path_dist(iter) = sargs.distance_func(X, [3 2]);
+    inter_dists(iter,:) = pdist(X);
+    Vs(iter,:) = sqrt(sum(V.^2,2));
 
     if to_plot && (mod(iter, 10) == 0)
       plotter(X, terrain);
