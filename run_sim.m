@@ -49,21 +49,24 @@ sargs.distance_func = @(X,c) (sum(sqrt(sum(bsxfun(@minus,X,c).^2,2)) > sargs.fou
 % basic_swarm(preset('adaptive'), sargs);
 
 % code for plotting distribution of path lengths and path lengths over time
-num_trials = 30;
+num_trials = 120;
 
 % list presets to compare
-bargs(1) = preset('dwexp');
+bargs(1) = preset('adaptive');
+bargs(2) = preset('norm_comm');
+bargs(3) = preset('no_orient');
+bargs(4) = preset('no_comm');
 
 % allocate space for outputs
 lengths = zeros(num_trials, length(bargs));
-path_dists = zeros(num_trials, length(bargs), sargs.num_iters);
-inter_dists = zeros(num_trials, length(bargs), sargs.num_iters, length(pdist(sargs.X)));
-Vs = zeros(num_trials, length(bargs), sargs.num_iters, sargs.n);
+% path_dists = zeros(num_trials, length(bargs), sargs.num_iters);
+% inter_dists = zeros(num_trials, length(bargs), sargs.num_iters, length(pdist(sargs.X)));
+% Vs = zeros(num_trials, length(bargs), sargs.num_iters, sargs.n);
 
-% run trials
-for trial = 1:num_trials
-  % run each method
-  for method = 1:length(bargs)
+% run each method
+for method = 1:length(bargs)
+  % run trials
+  parfor trial = 1:num_trials
     [trial, method] % report progress
     [lengths(trial,method)] = basic_swarm(bargs(method), sargs);
     % [lengths(trial,method), path_dists(trial,method,:), inter_dists(trial,method,:,:), Vs(trial,method,:,:)] = basic_swarm(bargs(method), sargs);
@@ -78,4 +81,4 @@ elseif sargs.n < 100
 else
   savenum = int2str(sargs.n);
 end
-save(['wd' savenum '.mat'],'lengths','path_dists','inter_dists','Vs');
+save(['multi4swarm' savenum '.mat'],'lengths');% ,'path_dists','inter_dists','Vs');
