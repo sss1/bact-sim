@@ -33,6 +33,15 @@ function [iter] = basic_swarm(bargs, sargs) % , path_dist, inter_dists, Vs] = ba
   % Vs = zeros(num_iters, sargs.n);
 
   for iter = 1:num_iters
+    if ismember(iter, [50 100 150])
+      theta = unifrnd(0,2*pi);
+      X_min = floor(15*cos(theta)) + 3;
+      Y_min = floor(15*sin(theta)) + 2;
+      new_X(:,1) = unifrnd(X_min, X_min + 1, sargs.n, 1);
+      new_X(:,2) = unifrnd(Y_min, Y_min + 1, sargs.n, 1);
+      X = [X; new_X];
+      'new swarm added'
+    end
 %    % code to add a second group half-way through
 %  for iter = 1:(num_iters/2)
 %    if iter == num_iters

@@ -49,7 +49,7 @@ sargs.distance_func = @(X,c) (sum(sqrt(sum(bsxfun(@minus,X,c).^2,2)) > sargs.fou
 % basic_swarm(preset('adaptive'), sargs);
 
 % code for plotting distribution of path lengths and path lengths over time
-num_trials = 5;
+num_trials = 30;
 
 % list presets to compare
 bargs(1) = preset('dwexp');
@@ -65,7 +65,8 @@ for trial = 1:num_trials
   % run each method
   for method = 1:length(bargs)
     [trial, method] % report progress
-    [lengths(trial,method), path_dists(trial,method,:), inter_dists(trial,method,:,:), Vs(trial,method,:,:)] = basic_swarm(bargs(method), sargs);
+    [lengths(trial,method)] = basic_swarm(bargs(method), sargs);
+    % [lengths(trial,method), path_dists(trial,method,:), inter_dists(trial,method,:,:), Vs(trial,method,:,:)] = basic_swarm(bargs(method), sargs);
   end
 end
 
