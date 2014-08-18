@@ -21,17 +21,18 @@ sargs.terrain = @(x,y) logSource(x,y) + obstacles(x,y) + obstacle(x,y);
 
 % sargs specifies simulation properties
 % i.e., global properties
-sargs.n = 20;                                  % number of agents to simulate
+sargs.n = 30;                                   % number of agents to simulate
 % X0 = [unifrnd(-7.7,-6.7,n,1) unifrnd(-8.2,-7.2,n,1); unifrnd(2.5,3.5,n,1) unifrnd(1.5,2.5,n,1)];
 sargs.X(:,1) = unifrnd(-7, -6, sargs.n, 1);     % initial agent X positions
 sargs.X(:,2) = unifrnd(-9, -8, sargs.n, 1);     % initial agent Y positions
 sargs.dt = 0.2;	                                % time step size
-sargs.num_iters = 800;                          % number of iterations to simulate (set very large (e.g., 5000) to measure path length)
+sargs.num_iters = 1600;                         % number of iterations to simulate (set very large (e.g., 5000) to measure path length)
 sargs.to_plot = false;                          % whether to plot simulation in real time
 sargs.to_record = false;                        % whether to save a video of the simulation plot; only used if sargs.to_plot
 sargs.record_name = 'refactored';               % name of video file (without '.avi'); only used if sargs.to_record
-sargs.found_radius = 0.8;                       % distance from food source at which to terminate search (0 if never)
-sargs.distance_func = @(X,c) norm(mean(X) - c); % how to determine the distance from food source c
+sargs.found_radius = 0.9;                       % distance from food source at which to terminate search (0 if never)
+% sargs.distance_func = @(X,c) norm(mean(X) - c); % how to determine the distance from food source c; distance of mean
+sargs.distance_func = @(X,c) (sum(sqrt(sum(bsxfun(@minus,X,c).^2,2)) > sargs.found_radius) > sargs.n/2); % whether half the agents have found food
 
 % code for plotting mean path
 % mean_path = basic_swarm(X0, terrain, sigma, RR, RO, RA, dt, sargs.n, to_plot, method);
@@ -48,14 +49,10 @@ sargs.distance_func = @(X,c) norm(mean(X) - c); % how to determine the distance 
 % basic_swarm(preset('adaptive'), sargs);
 
 % code for plotting distribution of path lengths and path lengths over time
-num_trials = 240;
+num_trials = 5;
 
 % list presets to compare
-bargs(1) = preset('shklarsh');
-bargs(2) = preset('adaptive');
-bargs(3) = preset('no_orient');
-bargs(4) = preset('d');
-bargs(5) = preset('wexp');
+bargs(1) = preset('dwexp');
 
 % allocate space for outputs
 lengths = zeros(num_trials, length(bargs));
@@ -64,29 +61,12 @@ inter_dists = zeros(num_trials, length(bargs), sargs.num_iters, length(pdist(sar
 Vs = zeros(num_trials, length(bargs), sargs.num_iters, sargs.n);
 
 % run trials
-parfor trial = 1:num_trials
-
-  % TODO: figure out classification! Maybe just remove parallelization...
-
-  % intermediate variable to ensure parfor classification
-  new_lengths = zeros(length(bargs),1);
-  new_path_dists = zeros(length(bargs), sargs.num_iters);
-  new_inter_dists = zeros(length(bargs), sargs.num_iters, length(pdist(sargs.X)));
-  new_Vs = zeros(length(bargs), sargs.num_iters, sargs.n);
-
+for trial = 1:num_trials
   % run each method
   for method = 1:length(bargs)
-    if trial <= num_trials/12 % report progress for one (of 12) thread(s)
-      [trial, method]
-    end
-    [new_lengths(method), new_path_dists(method,:), new_inter_dists(method,:,:), new_Vs(method,:,:)] = basic_swarm(bargs(method), sargs);
+    [trial, method] % report progress
+    [lengths(trial,method), path_dists(trial,method,:), inter_dists(trial,method,:,:), Vs(trial,method,:,:)] = basic_swarm(bargs(method), sargs);
   end
-
-  % copy intermediate variable to permanent ones
-  lengths(trial,:) = new_lengths;
-  path_dists(trial,1:length(bargs),1:sargs.num_iters) = path_dists;
-  inter_dists(trial,:,:,:) = new_inter_dists;
-  Vs(trial,:,:,:) = new_Vs;
 end
 
 % save results
@@ -97,4 +77,4 @@ elseif sargs.n < 100
 else
   savenum = int2str(sargs.n);
 end
-save(['designed' savenum '.mat'],'lengths','path_dists','inter_dists','Vs');
+save(['wd' savenum '.mat'],'lengths','path_dists','inter_dists','Vs');

@@ -8,7 +8,7 @@
 %  inter_dist - list of distances between agents at each timestep
 %  list of velocities of agents at each time step
 
-function [iter, path_dist, inter_dists, Vs] = basic_swarm(bargs, sargs)
+function [iter] = basic_swarm(bargs, sargs) % , path_dist, inter_dists, Vs] = basic_swarm(bargs, sargs)
 
   X = sargs.X;
   terrain = sargs.terrain;
@@ -28,9 +28,9 @@ function [iter, path_dist, inter_dists, Vs] = basic_swarm(bargs, sargs)
     end
   end
 
-  path_dist = zeros(num_iters, 1);
-  inter_dists = zeros(num_iters, length(pdist(X)));
-  Vs = zeros(num_iters, sargs.n);
+  % path_dist = zeros(num_iters, 1);
+  % inter_dists = zeros(num_iters, length(pdist(X)));
+  % Vs = zeros(num_iters, sargs.n);
 
   for iter = 1:num_iters
 %    % code to add a second group half-way through
@@ -53,9 +53,9 @@ function [iter, path_dist, inter_dists, Vs] = basic_swarm(bargs, sargs)
     V = velocities(X, V, bargs, sargs);
     X = X + dt*V;
 
-    path_dist(iter) = sargs.distance_func(X, [3 2]);
-    inter_dists(iter,:) = pdist(X);
-    Vs(iter,:) = sqrt(sum(V.^2,2));
+    % path_dist(iter) = sargs.distance_func(X, [3 2]);
+    % inter_dists(iter,:) = pdist(X);
+    % Vs(iter,:) = sqrt(sum(V.^2,2));
 
     if to_plot && (mod(iter, 10) == 0)
       plotter(X, terrain);
@@ -136,11 +136,12 @@ function u = interaction(i, X, V, D_i, bargs)
     attracts = bsxfun(@minus, X, X(i,:));
 
     % compute weighted discretized sums
+    % PRESENTLY DISCRETIZES AFTER WEIGHTING
     orient = [0 0];
     attract = [0 0];
     for x = 1:length(D_i)
-      orient = orient + df(V(x,:))*w_o(x);
-      attract = attract + df(attracts(x,:))*w_a(x);
+      orient = orient + df(V(x,:)*w_o(x));
+      attract = attract + df(attracts(x,:)*w_a(x));
     end
     u = orient + attract;
   end

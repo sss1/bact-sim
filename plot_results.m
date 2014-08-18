@@ -42,7 +42,7 @@ title('Mean Distance from Food Source over Time','FontSize',20);
 % Plot length distribution means over swarm (size with error bars)
 hold all;
 num_trials = 120;
-for i = 2:5
+for i = 1:5
   errorbar(ns(2:5), m(2:5,i),s(2:5,i)/sqrt(num_trials));
 end
 legend('Adaptive','No Orient','Discrete','Discrete, Exponentially Weighted');

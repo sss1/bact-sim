@@ -24,14 +24,32 @@ function bargs = preset(m)
     bargs.weight_fun = @(u, v, dc) u + v;
 
   elseif strcmpi(m, 'adaptive')
-    bargs.orient_decay = @(x) (x < RO);
-    bargs.attract_decay = @(x) (x < RA);
+    bargs.orient_decay = @(x) 1;
+    bargs.attract_decay = @(x) 1;
     bargs.disc_fun = @(x) x;
+    bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
+
+  elseif strcmpi(m, 'norm_comm')
+    bargs.orient_decay = @(x) 1;
+    bargs.attract_decay = @(x) 1;
+    bargs.disc_fun = @(x) normalize(x);
     bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
 
   elseif strcmpi(m, 'no_orient')
     bargs.orient_decay = @(x) 0;
-    bargs.attract_decay = @(x) (x < RA);
+    bargs.attract_decay = @(x) 1;
+    bargs.disc_fun = @(x) x;
+    bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
+
+  elseif strcmpi(m, 'no_attract')
+    bargs.orient_decay = @(x) 1;
+    bargs.attract_decay = @(x) 0;
+    bargs.disc_fun = @(x) x;
+    bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
+
+  elseif strcmpi(m, 'no_comm')
+    bargs.orient_decay = @(x) 0;
+    bargs.attract_decay = @(x) 0;
     bargs.disc_fun = @(x) x;
     bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
 
