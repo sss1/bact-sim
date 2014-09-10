@@ -1,0 +1,3 @@
+ - Run discrete, exponentially weighted knockouts in multiswarm (1 - 4 swarms, randomly generated)
+ - Run discrete, exponentially with some silent agents in multiswarm
+ - Run discrete, exponentially with some blind agents in multiswarm
