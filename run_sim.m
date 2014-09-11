@@ -1,6 +1,9 @@
 clear;
-% this file sets global parameters and then runs basic_swarm
-% run this file with the appropraite parameter values to run the simulation
+% this file sets global parameters, runs basic_swarm, and saves the results
+% run this file with the appropriate parameter values to run the simulation
+
+% true location of the food source
+source = [3 2];
 
 % some helper functions for terrains
 nf = @(x,y) sqrt(x.^2 + y.^2); % Euclidean norm in R^2
@@ -21,10 +24,11 @@ sargs.terrain = @(x,y) logSource(x,y) + obstacles(x,y) + obstacle(x,y);
 
 % sargs specifies simulation properties
 % i.e., global properties
-sargs.n = 30;                                   % number of agents to simulate
-% X0 = [unifrnd(-7.7,-6.7,n,1) unifrnd(-8.2,-7.2,n,1); unifrnd(2.5,3.5,n,1) unifrnd(1.5,2.5,n,1)];
-sargs.X(:,1) = unifrnd(-7, -6, sargs.n, 1);     % initial agent X positions
-sargs.X(:,2) = unifrnd(-9, -8, sargs.n, 1);     % initial agent Y positions
+sargs.n = 30;                                   % number of agents per swarm
+sargs.Ns = [2 4];                               % numbers of swarms
+% sargs.X(:,1) = unifrnd(-7, -6, sargs.n, 1);     % initial agent X positions
+% sargs.X(:,2) = unifrnd(-9, -8, sargs.n, 1);     % initial agent Y positions
+
 sargs.dt = 0.2;	                                % time step size
 sargs.num_iters = 1600;                         % number of iterations to simulate (set very large (e.g., 5000) to measure path length)
 sargs.to_plot = false;                          % whether to plot simulation in real time
@@ -32,7 +36,7 @@ sargs.to_record = false;                        % whether to save a video of the
 sargs.record_name = 'refactored';               % name of video file (without '.avi'); only used if sargs.to_record
 sargs.found_radius = 0.9;                       % distance from food source at which to terminate search (0 if never)
 % sargs.distance_func = @(X,c) norm(mean(X) - c); % how to determine the distance from food source c; distance of mean
-sargs.distance_func = @(X,c) (sum(sqrt(sum(bsxfun(@minus,X,c).^2,2)) > sargs.found_radius) > sargs.n/2); % whether half the agents have found food
+sargs.distance_func = @(X,c) (sum(sqrt(sum(bsxfun(@minus,X,c).^2,2)) > sargs.found_radius) > sargs.n/2); % whether half the agents have found food; for "median" path length
 
 % code for plotting mean path
 % mean_path = basic_swarm(X0, terrain, sigma, RR, RO, RA, dt, sargs.n, to_plot, method);
@@ -52,24 +56,39 @@ sargs.distance_func = @(X,c) (sum(sqrt(sum(bsxfun(@minus,X,c).^2,2)) > sargs.fou
 num_trials = 120;
 
 % list presets to compare
-bargs(1) = preset('adaptive');
+bargs(1) = preset('dwexp');
 bargs(2) = preset('norm_comm');
 bargs(3) = preset('no_orient');
 bargs(4) = preset('no_comm');
 
 % allocate space for outputs
-lengths = zeros(num_trials, length(bargs));
+lengths = zeros(num_trials, length(bargs), length(sargs.Ns));
 % path_dists = zeros(num_trials, length(bargs), sargs.num_iters);
 % inter_dists = zeros(num_trials, length(bargs), sargs.num_iters, length(pdist(sargs.X)));
 % Vs = zeros(num_trials, length(bargs), sargs.num_iters, sargs.n);
 
 % run each method
 for method = 1:length(bargs)
-  % run trials
-  parfor trial = 1:num_trials
-    [trial, method] % report progress
-    [lengths(trial,method)] = basic_swarm(bargs(method), sargs);
-    % [lengths(trial,method), path_dists(trial,method,:), inter_dists(trial,method,:,:), Vs(trial,method,:,:)] = basic_swarm(bargs(method), sargs);
+  for Ni=1:length(sargs.Ns)
+    N = sargs.Ns(Ni);
+    % run trials
+    parfor trial = 1:num_trials
+
+      X0 = zeros(0,2);
+      for i=1:N % randomly place swarms around food source
+        theta = unifrnd(0,2*pi);
+        X_min = floor(15*cos(theta)) + source(1) - 0.5;
+        Y_min = floor(15*sin(theta)) + source(2) - 0.5;
+        new_X = [unifrnd(X_min, X_min + 1, sargs.n, 1) unifrnd(Y_min, Y_min + 1, sargs.n, 1)];
+        X0 = [X0; new_X];
+      end
+
+      if trial <= 10
+        [method, N, trial] % report progress
+      end
+      [lengths(trial,method,Ni)] = basic_swarm(bargs(method), sargs, X0);
+      % [lengths(trial,method), path_dists(trial,method,:), inter_dists(trial,method,:,:), Vs(trial,method,:,:)] = basic_swarm(bargs(method), sargs);
+    end
   end
 end
 
@@ -81,4 +100,4 @@ elseif sargs.n < 100
 else
   savenum = int2str(sargs.n);
 end
-save(['multi4swarm' savenum '.mat'],'lengths');% ,'path_dists','inter_dists','Vs');
+save(['isoDisc2to4Multi' savenum '.mat'],'lengths','bargs','sargs');% ,'path_dists','inter_dists','Vs');

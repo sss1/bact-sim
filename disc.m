@@ -5,7 +5,7 @@ function D = disc(x, L, T)
   l = L - 1; % due to a technicality of rounding implementation;
 
   % round direction to nearest of 8 cardinal vectors; TODO: add levels
-  dirs = normr([-1 -1; -1 0; -1 1; 0 -1; 0 1; 1 -1; 1 0; 1 1]);
+  dirs = [-sqrt(2) -sqrt(2); -1 0; -sqrt(2) sqrt(2); 0 -1; 0 1; sqrt(2) -sqrt(2); 1 0; sqrt(2) sqrt(2)];
   [~,I] = max(x(1)*dirs(:,1) + x(2)*dirs(:,2)); % take dir maximizing dot prod
   dir = dirs(I,:);
 

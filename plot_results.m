@@ -1,17 +1,11 @@
-% Plot distribution of path lengths
+% Plot kernel smoothed distribution of path lengths
 hold all;
-% [f,xi] = ksdensity(lengths0);
-% plot(xi,f,'LineWidth',3);
-[f,xi] = ksdensity(lengths1);
-plot(xi,f,'LineWidth',3);
-[f,xi] = ksdensity(lengths2);
-plot(xi,f,'LineWidth',3);
-[f,xi] = ksdensity(lengths3);
-plot(xi,f,'LineWidth',3);
-[f,xi] = ksdensity(lengths4);
-plot(xi,f,'LineWidth',3);
+for i=1:size(lengths,2)
+  [f,xi] = ksdensity(lengths(:,i));
+  plot(xi,f,'LineWidth',3);
+end
 xlim([0 800]);
-h = legend('Adaptive','No Orient','Discrete','Discrete, Exponentially Weighted');
+h = legend('Discrete, Exponentially Weighted','Norm Comm','No Orient','No Comm','No Repulsion');
 % h = legend('Basic','Adaptive','No Orient','Discrete','Discrete, Exponentially Weighted');
 set(h,'FontSize',20);
 xlabel('Path Length (Iterations)','FontSize',20);

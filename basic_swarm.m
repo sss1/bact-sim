@@ -8,9 +8,9 @@
 %  inter_dist - list of distances between agents at each timestep
 %  list of velocities of agents at each time step
 
-function [iter] = basic_swarm(bargs, sargs) % , path_dist, inter_dists, Vs] = basic_swarm(bargs, sargs)
+function [iter] = basic_swarm(bargs, sargs, X0) % , path_dist, inter_dists, Vs] = basic_swarm(bargs, sargs)
 
-  X = sargs.X;
+  X = X0;
   terrain = sargs.terrain;
   dt = sargs.dt;
   num_iters = sargs.num_iters;
@@ -18,6 +18,8 @@ function [iter] = basic_swarm(bargs, sargs) % , path_dist, inter_dists, Vs] = ba
   to_record = sargs.to_record;
 
   V = zeros(size(X)); % matrix of agent velocities; initially 0
+
+  bargs.KO = zeros(size(X,1),1);
 
   if to_plot
     plotter(X, terrain);
@@ -33,15 +35,15 @@ function [iter] = basic_swarm(bargs, sargs) % , path_dist, inter_dists, Vs] = ba
   % Vs = zeros(num_iters, sargs.n);
 
   for iter = 1:num_iters
-    if ismember(iter, [50 100 150])
-      theta = unifrnd(0,2*pi);
-      X_min = floor(15*cos(theta)) + 3;
-      Y_min = floor(15*sin(theta)) + 2;
-      new_X(:,1) = unifrnd(X_min, X_min + 1, sargs.n, 1);
-      new_X(:,2) = unifrnd(Y_min, Y_min + 1, sargs.n, 1);
-      X = [X; new_X];
-      V = [V; zeros(size(new_X))];
-    end
+%     if ismember(iter, [50 100 150])
+%       theta = unifrnd(0,2*pi);
+%       X_min = floor(15*cos(theta)) + 3;
+%       Y_min = floor(15*sin(theta)) + 2;
+%       new_X(:,1) = unifrnd(X_min, X_min + 1, sargs.n, 1);
+%       new_X(:,2) = unifrnd(Y_min, Y_min + 1, sargs.n, 1);
+%       X = [X; new_X];
+%       V = [V; zeros(size(new_X))];
+%     end
 %    % code to add a second group half-way through
 %  for iter = 1:(num_iters/2)
 %    if iter == num_iters
@@ -120,6 +122,15 @@ function v = velocity(i, X, V, D_i, bargs, sargs)
     v = v./norm(v);
   end
 
+ % KNOCK OUT THE AGENT FOR a few ROUNDS UPON COLLISION
+ if(bargs.KO(i) > 0)
+   v = 0;
+   bargs.KO(i) = bargs.KO(i) - 1;
+ elseif(min(D_i(D_i > 0)) < bargs.RR)
+   v = 0;
+   bargs.KO(i) = bargs.collision_delay;
+ end
+
   v = v + normrnd(0, sigma, 1, 2); % add noise
 
 end
@@ -133,7 +144,7 @@ function u = interaction(i, X, V, D_i, bargs)
   df = bargs.disc_fun;
 
   repulsion_idxs = D_i <= RR & D_i > 0;
-  if any(repulsion_idxs) % simply avoid collision(s)
+  if bargs.collision_delay == 0 && any(repulsion_idxs) % simply avoid collision(s)
     u = -sum(bsxfun(@minus, X(repulsion_idxs,:), X(i,:)));
   else
     % compute weights for orient and attract based on input decay functions
