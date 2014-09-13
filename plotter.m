@@ -10,10 +10,10 @@ function plotter(X, terrain)
 
   [n, ~] = size(X);
 
-  xmin = -5;%min(X(:,1)) - 4;
-  xmax = 7;%max(X(:,1)) + 4;
-  ymin = -6;%min(X(:,2)) - 4;
-  ymax = 6;%max(X(:,2)) + 4;
+  xmin = -10;%min(X(:,1)) - 4;
+  xmax = 14;%max(X(:,1)) + 4;
+  ymin = -12;%min(X(:,2)) - 4;
+  ymax = 12;%max(X(:,2)) + 4;
 
   % plot terrain
   ezcontour(terrain, 2*[xmin,xmax,ymin,ymax], 250);

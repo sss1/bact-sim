@@ -64,7 +64,7 @@ function bargs = preset(m)
 
   elseif strcmpi(m, 'dwexp') % discrete, exponentially weighted; out "best" model
     bargs.orient_decay = @(x) exp(-2*x);
-    bargs.attract_decay = @(x) exp(-x/2);
+    bargs.attract_decay = @(x) exp(-x);
     bargs.disc_fun = @(x) disc(x, bargs.L, bargs.T);
     bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
 
@@ -78,7 +78,7 @@ function bargs = preset(m)
 
   elseif strcmpi(m, 'no_orient') % no orientation
     bargs.orient_decay = @(x) 0;
-    bargs.attract_decay = @(x) exp(-x/2);
+    bargs.attract_decay = @(x) exp(-x);
     bargs.disc_fun = @(x) disc(x, bargs.L, bargs.T);
     bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
 
@@ -90,7 +90,7 @@ function bargs = preset(m)
 
   elseif strcmpi(m, 'no_rep') % no repulsion
     bargs.orient_decay = @(x) exp(-2*x);
-    bargs.attract_decay = @(x) exp(-x/2);
+    bargs.attract_decay = @(x) exp(-x);
     bargs.disc_fun = @(x) disc(x, bargs.L, bargs.T);
     bargs.weight_fun = @(u, v, dc) u + 10*(dc > 0)*v;
     bargs.collision_delay = 10;

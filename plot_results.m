@@ -1,16 +1,18 @@
-% Plot kernel smoothed distribution of path lengths
-hold all;
-for i=1:size(lengths,2)
-  [f,xi] = ksdensity(lengths(:,i));
-  plot(xi,f,'LineWidth',3);
+for N=1:4
+  subplot(4,1,N);
+  % Plot kernel smoothed distribution of path lengths
+  hold all;
+  for i=1:size(lengths,2)
+    [f,xi] = ksdensity(squeeze(lengths(:,i,N)));
+    plot(xi,f,'LineWidth',3);
+  end
+  xlim([0 1600]);
+  h = legend('Discrete, Exponentially Weighted','Norm Comm','No Orient','No Comm');
+  set(h,'FontSize',20);
+  xlabel('Path Length (Iterations)','FontSize',20);
+  ylabel('Probability','FontSize',20);
 end
-xlim([0 800]);
-h = legend('Discrete, Exponentially Weighted','Norm Comm','No Orient','No Comm','No Repulsion');
-% h = legend('Basic','Adaptive','No Orient','Discrete','Discrete, Exponentially Weighted');
-set(h,'FontSize',20);
-xlabel('Path Length (Iterations)','FontSize',20);
-ylabel('Probability','FontSize',20);
-title('Distribution of Path Lengths for First Swarm under Each Model','FontSize',20);
+title('Distribution of Median Path Lengths under Each Model','FontSize',20);
 
 % Plot path lengths over time
 hold all;

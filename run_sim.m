@@ -3,6 +3,7 @@ clear;
 % run this file with the appropriate parameter values to run the simulation
 
 % true location of the food source
+% TODO: should move food to [0 0], but need to make sure to change this everywhere
 source = [3 2];
 
 % some helper functions for terrains
@@ -16,7 +17,7 @@ obstacle = @(x,y) min(0,-7.5 + 50.*nf((x - 0.3)./3.2, y + 2).^2); % single parab
 %%% OBJECTIVE FUNCTION %%%
 % -log food source with obstacles
 % terrain = @(x,y) obstacle(x - 1,y - x + 1) + obstacles(x,y) + logSource(x,y); % easy version
-sargs.terrain = @(x,y) logSource(x,y) + obstacles(x,y) + obstacle(x,y);
+sargs.terrain = @(x,y) logSource(x,y) + obstacles(x,y); % + obstacle(x,y);
 % % -bessel food source with obstacles
 % terrain = @(x,y) besselSource(x,y) + min(0,1 - nf(x,y).*cos(pi.*x./3).*cos(pi.*y./3)) + min(0,-5 + 10.*(nf(x./2 + 0.3,y + 2)));
 % % Rosenbrock's Banana function, centered at [3 2]
@@ -24,19 +25,19 @@ sargs.terrain = @(x,y) logSource(x,y) + obstacles(x,y) + obstacle(x,y);
 
 % sargs specifies simulation properties
 % i.e., global properties
-sargs.n = 30;                                   % number of agents per swarm
-sargs.Ns = [2 4];                               % numbers of swarms
+sargs.n = 20;                                   % number of agents per swarm
+sargs.Ns = 1:4;                                 % numbers of swarms
 % sargs.X(:,1) = unifrnd(-7, -6, sargs.n, 1);     % initial agent X positions
 % sargs.X(:,2) = unifrnd(-9, -8, sargs.n, 1);     % initial agent Y positions
 
-sargs.dt = 0.2;	                                % time step size
+sargs.dt = 0.5;	                                % time step size
 sargs.num_iters = 1600;                         % number of iterations to simulate (set very large (e.g., 5000) to measure path length)
 sargs.to_plot = false;                          % whether to plot simulation in real time
 sargs.to_record = false;                        % whether to save a video of the simulation plot; only used if sargs.to_plot
 sargs.record_name = 'refactored';               % name of video file (without '.avi'); only used if sargs.to_record
 sargs.found_radius = 0.9;                       % distance from food source at which to terminate search (0 if never)
 % sargs.distance_func = @(X,c) norm(mean(X) - c); % how to determine the distance from food source c; distance of mean
-sargs.distance_func = @(X,c) (sum(sqrt(sum(bsxfun(@minus,X,c).^2,2)) > sargs.found_radius) > sargs.n/2); % whether half the agents have found food; for "median" path length
+sargs.distance_func = @(X,c) (sum(sqrt(sum(bsxfun(@minus,X,c).^2,2)) > 1.5) > sargs.n/2); % whether half the agents have found food; for "median" path length
 
 % code for plotting mean path
 % mean_path = basic_swarm(X0, terrain, sigma, RR, RO, RA, dt, sargs.n, to_plot, method);
@@ -100,4 +101,4 @@ elseif sargs.n < 100
 else
   savenum = int2str(sargs.n);
 end
-save(['isoDisc2to4Multi' savenum '.mat'],'lengths','bargs','sargs');% ,'path_dists','inter_dists','Vs');
+% save(['isoDiscAllMulti' savenum '.mat'],'lengths','bargs','sargs');% ,'path_dists','inter_dists','Vs');
