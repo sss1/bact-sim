@@ -10,8 +10,6 @@
 %   attract_decay: decay function for attraction
 %   disc_fun: discretization function (can depend on L and T)
 %   collision_delay: integer number of rounds to disable an agent upon collision (or 0 to use repulsion)
-%   blind_frac: fraction of agents who cannot sense food (between 0 and 1)
-%   silent_frac: fraction of agent per swarm who do not communicate (between 0 and 1)
 %   weight_fun: function weighting interaction component based on gradient (typically 1 or adaptive)
 
 function bargs = preset(m)
@@ -23,8 +21,6 @@ function bargs = preset(m)
   bargs.L = 4;
   bargs.T = 1;
   bargs.collision_delay = 0;
-  bargs.blind_frac = 0;
-  bargs.silent_frac = 0;
 
   if strcmpi(m, 'shklarsh') % original Shklarsh model
     bargs.orient_decay = @(x) (x < bargs.RO);

@@ -96,7 +96,7 @@ function V_next = velocities(X, V, bargs, sargs)
   % compute velocity for each agent
   % NOTE: maybe parallelize this step for large populations,
   % but better to parallelize trials
-  for i = 1:size(X,1);
+  parfor i = 1:size(X,1);
     V_next(i,:) = velocity(i, X, V, D(:,i), bargs, sargs);
   end
 end
@@ -111,32 +111,34 @@ function v = velocity(i, X, V, D_i, bargs, sargs)
   prevX = X(i,:) - dt*V(i,:);
   dc = terrain(X(i,1),X(i,2)) - terrain(prevX(1),prevX(2)); % change in gradient
 
+  dc = dc*(~sargs.blind(i));
+
   % tumble if gradient isn't increasing
-  theta = normrnd(0,pi*(dc < 0));
+  theta = normrnd(0,pi*(dc <= 0));
   R = [cos(theta) -sin(theta); sin(theta) cos(theta)];
 
   % combine interaction and individual components, according to weight
-  v = wf(interaction(i, X, V, D_i, bargs), V(i,:)*R, dc);
+  v = wf(interaction(i, X, V, D_i, bargs, sargs), V(i,:)*R, dc);
 
   if norm(v) > 0
     v = v./norm(v);
   end
 
- % KNOCK OUT THE AGENT FOR a few ROUNDS UPON COLLISION
- if(bargs.KO(i) > 0)
-   v = 0;
-   bargs.KO(i) = bargs.KO(i) - 1;
- elseif(min(D_i(D_i > 0)) < bargs.RR)
-   v = 0;
-   bargs.KO(i) = bargs.collision_delay;
- end
+  % KNOCK OUT THE AGENT FOR A FEW ROUNDS UPON COLLISION
+  if(bargs.KO(i) > 0)
+    v = 0;
+    bargs.KO(i) = bargs.KO(i) - 1;
+  elseif(min(D_i(D_i > 0)) < bargs.RR)
+    v = 0;
+    bargs.KO(i) = bargs.collision_delay;
+  end
 
   v = v + normrnd(0, sigma, 1, 2); % add noise
 
 end
 
 % compute the normalized total effect of interactions on agent i 
-function u = interaction(i, X, V, D_i, bargs)
+function u = interaction(i, X, V, D_i, bargs, sargs)
 
   RR = bargs.RR;
   o_decay = bargs.orient_decay;
@@ -160,8 +162,8 @@ function u = interaction(i, X, V, D_i, bargs)
     orient = [0 0];
     attract = [0 0];
     for x = 1:length(D_i)
-      orient = orient + df(V(x,:)*w_o(x));
-      attract = attract + df(attracts(x,:)*w_a(x));
+      orient = orient + df(V(x,:)*w_o(x))*(~sargs.silent(x));
+      attract = attract + df(attracts(x,:)*w_a(x))*(~sargs.silent(x));
     end
     u = orient + attract;
   end
