@@ -31,9 +31,10 @@ sargs.Ns = 1;                                    % numbers of swarms
 
 sargs.dt = 0.5;	                                % time step size
 sargs.num_iters = 5000;                         % number of iterations to simulate (set very large (e.g., 5000) to measure path length)
-sargs.to_plot = true;                          % whether to plot simulation in real time
+sargs.to_plot = true;                           % whether to plot simulation in real time
 sargs.to_record = false;                        % whether to save a video of the simulation plot; only used if sargs.to_plot
 sargs.record_name = 'single_agent';             % name of video file (without '.avi'); only used if sargs.to_record
+sargs.d_0 = 20;	                                % initial distance from food source
 sargs.found_radius = 0.9;                       % distance from food source at which to terminate search (-1 if never)
 % sargs.distance_func = @(X,c) norm(mean(X) - c); % distance function from food source c; distance of mean
 sargs.distance_func = @(X,c) (sum(sqrt(sum(bsxfun(@minus,X,c).^2,2)) > 0.5) > sargs.n/2); % whether half the agents have found food; for "median" path length
@@ -73,8 +74,8 @@ for method = 1:length(bargs)
         X0 = zeros(0,2);
         for i=1:N % randomly place swarms around food source
           theta = unifrnd(0,2*pi);
-          X_min = floor(20*cos(theta)) + source(1) - 0.5;
-          Y_min = floor(20*sin(theta)) + source(2) - 0.5;
+          X_min = floor(sargs.d_0*cos(theta)) + source(1) - 0.5;
+          Y_min = floor(sargs.d_0*sin(theta)) + source(2) - 0.5;
           new_X = [unifrnd(X_min, X_min + 3, sargs.n, 1) unifrnd(Y_min, Y_min + 3, sargs.n, 1)];
           X0 = [X0; new_X];
         end
