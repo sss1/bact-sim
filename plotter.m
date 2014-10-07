@@ -24,9 +24,9 @@ function plotter(X, terrain)
     draw_circle(X(i,1), X(i,2), r/5,'k');
   end
 
-  % draw big red point at mean
-  avg = mean(X,1);
-  draw_circle(avg(1),avg(2),r./2,'r');
+  % % draw big red point at mean
+  % avg = mean(X,1);
+  % draw_circle(avg(1),avg(2),r./2,'r');
 
   drawnow;
 end

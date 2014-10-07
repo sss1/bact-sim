@@ -24,21 +24,21 @@ sargs.terrain = @(x,y) logSource(x,y) + obstacles(x,y); % + obstacle(x,y);
 
 % sargs specifies simulation properties
 % i.e., global properties
-sargs.n = 20;                                   % number of agents per swarm
-sargs.Ns = 1;                                   % numbers of swarms
+sargs.n = 30;                                    % number of agents per swarm
+sargs.Ns = 1;                                    % numbers of swarms
 % sargs.X(:,1) = unifrnd(-7, -6, sargs.n, 1);     % initial agent X positions
 % sargs.X(:,2) = unifrnd(-9, -8, sargs.n, 1);     % initial agent Y positions
 
 sargs.dt = 0.5;	                                % time step size
 sargs.num_iters = 5000;                         % number of iterations to simulate (set very large (e.g., 5000) to measure path length)
-sargs.to_plot = false;                          % whether to plot simulation in real time
+sargs.to_plot = true;                          % whether to plot simulation in real time
 sargs.to_record = false;                        % whether to save a video of the simulation plot; only used if sargs.to_plot
-sargs.record_name = 'refactored';               % name of video file (without '.avi'); only used if sargs.to_record
+sargs.record_name = 'single_agent';             % name of video file (without '.avi'); only used if sargs.to_record
 sargs.found_radius = 0.9;                       % distance from food source at which to terminate search (-1 if never)
 % sargs.distance_func = @(X,c) norm(mean(X) - c); % distance function from food source c; distance of mean
-sargs.distance_func = @(X,c) (sum(sqrt(sum(bsxfun(@minus,X,c).^2,2)) > 1.5) > sargs.n/2); % whether half the agents have found food; for "median" path length
+sargs.distance_func = @(X,c) (sum(sqrt(sum(bsxfun(@minus,X,c).^2,2)) > 0.5) > sargs.n/2); % whether half the agents have found food; for "median" path length
 
-num_trials = 50;
+num_trials = 100;
 
 % list presets to compare
 bargs(1) = preset('dwexp');
@@ -52,37 +52,37 @@ lengths = zeros(num_trials, length(bargs), length(sargs.Ns));
 % inter_dists = zeros(num_trials, length(bargs), sargs.num_iters, length(pdist(sargs.X)));
 % Vs = zeros(num_trials, length(bargs), sargs.num_iters, sargs.n);
 
-blind_fracs = [0 0.1 0.2 0.3 0.4];
-sargs.silent_frac = 0; % fraction of noncommunicative agents (between 0 and 1)
+silent_fracs = [0 0.4 0.6 0.8 0.9 1];
+sargs.blind_frac = 0;
 
 % run each method
 for method = 1:length(bargs)
 
-  for bi=1:length(blind_fracs)
-    sargs.blind_frac = blind_fracs(bi);
+  for si=1:length(silent_fracs)
+    sargs.silent_frac = silent_fracs(si);
 
     for Ni=1:length(sargs.Ns)
       N = sargs.Ns(Ni);
 
-      % run trials
-      for trial = 1:num_trials
-
         sargs.blind = unifrnd(0,1,sargs.n*N,1) < sargs.blind_frac;
         sargs.silent = unifrnd(0,1,sargs.n*N,1) < sargs.silent_frac;
+
+      % run trials
+      for trial = 1:num_trials
 
         X0 = zeros(0,2);
         for i=1:N % randomly place swarms around food source
           theta = unifrnd(0,2*pi);
-          X_min = floor(15*cos(theta)) + source(1) - 0.5;
-          Y_min = floor(15*sin(theta)) + source(2) - 0.5;
-          new_X = [unifrnd(X_min, X_min + 1, sargs.n, 1) unifrnd(Y_min, Y_min + 1, sargs.n, 1)];
+          X_min = floor(20*cos(theta)) + source(1) - 0.5;
+          Y_min = floor(20*sin(theta)) + source(2) - 0.5;
+          new_X = [unifrnd(X_min, X_min + 3, sargs.n, 1) unifrnd(Y_min, Y_min + 3, sargs.n, 1)];
           X0 = [X0; new_X];
         end
 
         % if trial <= 10
-          [method, bi, trial] % report progress
+          [method, si, trial] % report progress
         % end
-        [lengths(trial,method,bi)] = basic_swarm(bargs(method), sargs, X0);
+        [lengths(trial,method,si)] = basic_swarm(bargs(method), sargs, X0);
         % [lengths(trial,method), path_dists(trial,method,:), inter_dists(trial,method,:,:), Vs(trial,method,:,:)] = basic_swarm(bargs(method), sargs);
       end
     end
@@ -97,4 +97,4 @@ elseif sargs.n < 100
 else
   savenum = int2str(sargs.n);
 end
-save(['dwexpBlinds' savenum '.mat'],'lengths','bargs','sargs');% ,'path_dists','inter_dists','Vs');
+% save(['dwexpSilents' savenum '.mat'],'lengths','bargs','sargs');% ,'path_dists','inter_dists','Vs');

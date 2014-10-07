@@ -57,7 +57,7 @@ function [iter] = basic_swarm(bargs, sargs, X0) % , path_dist, inter_dists, Vs] 
 
     % objective found; terminate and return path length
     if sargs.distance_func(X, [3 2]) < sargs.found_radius
-      return
+      break
     end
 
     % compute agent velocities and update agent positions accordingly
@@ -96,7 +96,7 @@ function V_next = velocities(X, V, bargs, sargs)
   % compute velocity for each agent
   % NOTE: maybe parallelize this step for large populations,
   % but better to parallelize trials
-  parfor i = 1:size(X,1);
+  parfor i = 1:size(X,1)
     V_next(i,:) = velocity(i, X, V, D(:,i), bargs, sargs);
   end
 end
@@ -118,7 +118,11 @@ function v = velocity(i, X, V, D_i, bargs, sargs)
   R = [cos(theta) -sin(theta); sin(theta) cos(theta)];
 
   % combine interaction and individual components, according to weight
-  v = wf(interaction(i, X, V, D_i, bargs, sargs), V(i,:)*R, dc);
+  if size(X,1) > 1
+    v = wf(interaction(i, X, V, D_i, bargs, sargs), V(i,:)*R, dc);
+  else
+    v = V(i,:)*R;
+  end
 
   if norm(v) > 0
     v = v./norm(v);
